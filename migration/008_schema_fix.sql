@@ -68,7 +68,7 @@ RENAME TO  abnormal_claim,
 
 -- +migrate StatementBegin
 ALTER TABLE claim
-  DROP FOREIGN KEY claim_ibfk_1;
+  DROP FOREIGN KEY FK_ClaimTransaction;
 -- +migrate StatementEnd
 
 -- +migrate StatementBegin
@@ -81,7 +81,7 @@ ALTER TABLE claim
 
 -- +migrate StatementBegin
 ALTER TABLE claim
-  ADD CONSTRAINT claim_ibfk_1
+  ADD CONSTRAINT FK_ClaimTransaction
 FOREIGN KEY (transaction_hash_id)
 REFERENCES transaction (hash)
   ON DELETE CASCADE
@@ -90,7 +90,7 @@ REFERENCES transaction (hash)
 
 -- +migrate StatementBegin
 ALTER TABLE transaction
-  DROP FOREIGN KEY transaction_ibfk_1;
+  DROP FOREIGN KEY FK_TransactionBlockHash;
 -- +migrate StatementEnd
 
 -- +migrate StatementBegin
@@ -100,7 +100,7 @@ ALTER TABLE transaction
 
 -- +migrate StatementBegin
 ALTER TABLE transaction
-  ADD CONSTRAINT transaction_ibfk_1
+  ADD CONSTRAINT FK_TransactionBlockHash
 FOREIGN KEY (block_hash_id)
 REFERENCES block (hash)
   ON DELETE CASCADE
