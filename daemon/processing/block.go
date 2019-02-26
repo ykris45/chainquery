@@ -23,6 +23,7 @@ import (
 
 // BlockLock is used to lock block processing to a single parent thread.
 var BlockLock = sync.Mutex{}
+var BlockValidationEnabled bool
 
 // RunBlockProcessing runs the processing of a block at a specific height. While any height can be passed in it is
 // important to note that if the previous block is not processed it will panic to prevent corruption because blocks
@@ -54,17 +55,47 @@ func RunBlockProcessing(height uint64) uint64 {
 
 	txs := jsonBlock.Tx
 	err = syncTransactionsOfBlock(txs, block.BlockTime, block.Height)
+	if err == nil && BlockValidationEnabled {
+		err = validateBlock(block)
+	}
 	if err != nil {
 		blockRemovalError := block.DeleteG()
 		if blockRemovalError != nil {
 			logrus.Panicf("Could not delete block with bad data. Data corruption imminent at height %d. The block must be remove manually to continue. Reason: ", height)
 		}
-		logrus.Warning("Ran into transaction sync error at height", height, ". Rolling block back to height", height-1, " with error: ", err)
+		logrus.Warning("Ran into block sync error at height", height, ". Rolling block back to height", height-1, " with error: ", err)
 		//ToDo - Should just return error...that is for another day
 		return height - 1
 	}
 
 	return height
+}
+
+func validateBlock(block *model.Block) error {
+	txs, err := block.BlockHashTransactions().AllG()
+	if err != nil {
+		return errors.Err(err)
+	}
+
+	for _, tx := range txs {
+		jsonTx, err := lbrycrd.GetRawTransactionResponse(tx.Hash)
+		if err != nil {
+			return errors.Err(err)
+		}
+		outputCnt, err := tx.Outputs().CountG()
+		if err != nil {
+			return errors.Err(err)
+		}
+		inputCnt, err := tx.Inputs().CountG()
+		if err != nil {
+			return errors.Err(err)
+		}
+
+		if int(outputCnt) != len(jsonTx.Vout) || int(inputCnt) != len(jsonTx.Vin) {
+			errors.Err("BLOCK VALIDATION FAILED inputs (%d vs %d), outputs (%d vs %d)", outputCnt, len(jsonTx.Vout), inputCnt, len(jsonTx.Vin))
+		}
+	}
+	return nil
 }
 
 func parseBlockInfo(blockHeight uint64, jsonBlock *lbrycrd.GetBlockResponse) (block *model.Block) {

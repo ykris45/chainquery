@@ -92,3 +92,8 @@
 #source output to spend is not already processed.
 #DEFAULT: 1000
 #maxfailures=
+
+#Block Validation - When enabled chainquery once a block has been processed will verify the number of inputs and outputs
+#for each transaction in a block.
+#DEFAULT: false
+#blockvalidation=

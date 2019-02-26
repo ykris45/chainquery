@@ -50,6 +50,7 @@ const ( // config setting keys
 	smsfromphonenumber   = "smsfromphonenumber"
 	apikeys              = "apikeys"
 	maxfailures          = "maxfailures"
+	blockvalidation      = "blockvalidation"
 )
 
 const (
@@ -138,6 +139,7 @@ func initDefaults() {
 	viper.SetDefault(smsrecipients, []string{})
 	viper.SetDefault(smsfromphonenumber, "")
 	viper.SetDefault(maxfailures, 1000)
+	viper.SetDefault(blockvalidation, true)
 }
 
 func processConfiguration() {
@@ -166,6 +168,7 @@ func processConfiguration() {
 	lbrycrd.LBRYcrdURL = GetLBRYcrdURL()
 	auth.APIKeys = viper.GetStringSlice(apikeys)
 	processing.MaxFailures = viper.GetInt(maxfailures)
+	processing.BlockValidationEnabled = viper.GetBool(blockvalidation)
 
 }
 
